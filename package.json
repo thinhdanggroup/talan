@@ -1,10 +1,11 @@
 {
-  "name": "code-tutor",
-  "displayName": "Code Tutor",
-  "description": "",
-  "version": "0.0.1",
+  "name": "talan",
+  "displayName": "Talan",
+  "description": "A simple demo chatbot extension for Visual Studio Code.",
+  "version": "0.0.2",
+  "publisher": "thinhda",
   "engines": {
-    "vscode": "^1.93.0"
+    "vscode": "^1.94.0"
   },
   "categories": [
     "AI",
@@ -12,13 +13,17 @@
   ],
   "activationEvents": [],
   "main": "./out/extension.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:thinhdanggroup/talan.git"
+  },
   "contributes": {
     "chatParticipants": [
       {
         "id": "chat-tutorial.code-tutor",
-        "fullName": "Code Tutor",
-        "name": "tutor",
-        "description": "What can I teach you?",
+        "fullName": "Talan",
+        "name": "talan",
+        "description": "A simple demo chatbot extension for Visual Studio Code.",
         "isSticky": true,
         "commands": [
           {
