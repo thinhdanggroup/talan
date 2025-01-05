@@ -2,7 +2,7 @@
   "name": "talan",
   "displayName": "Talan",
   "description": "A simple demo chatbot extension for Visual Studio Code.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "thinhda",
   "engines": {
     "vscode": "^1.94.0"
