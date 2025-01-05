@@ -52,7 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
 	};
 
 	// create participant
-	const tutor = vscode.chat.createChatParticipant("chat-tutorial.code-tutor", handler);
+	const tutor = vscode.chat.createChatParticipant("thinhda.talan", handler);
 
 	// add icon to participant
 	tutor.iconPath = vscode.Uri.joinPath(context.extensionUri, 'tutor.jpeg');
