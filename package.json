@@ -2,7 +2,7 @@
   "name": "talan",
   "displayName": "Talan",
   "description": "A simple demo chatbot extension for Visual Studio Code.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "thinhda",
   "engines": {
     "vscode": "^1.94.0"
@@ -20,10 +20,10 @@
   "contributes": {
     "chatParticipants": [
       {
-        "id": "chat-tutorial.talan",
+        "id": "thinhda.talan",
         "fullName": "Talan",
         "name": "talan",
-        "description": "A simple demo chatbot extension for Visual Studio Code.",
+        "description": "Talan is a simple demo chatbot extension for Visual Studio Code that is integrated with Github Copilot and your document",
         "isSticky": true,
         "commands": [
           {
