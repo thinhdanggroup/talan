@@ -20,7 +20,7 @@
   "contributes": {
     "chatParticipants": [
       {
-        "id": "chat-tutorial.code-tutor",
+        "id": "chat-tutorial.talan",
         "fullName": "Talan",
         "name": "talan",
         "description": "A simple demo chatbot extension for Visual Studio Code.",

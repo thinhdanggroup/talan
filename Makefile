@@ -1,0 +1,4 @@
+
+
+release: 
+	@vsce publish
