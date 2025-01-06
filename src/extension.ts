@@ -57,6 +57,45 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 				return;
 			}
+		} else if (request.command === 'ask') {
+			logger.appendLine('Using ask command');
+			try {
+				// Get all cached data
+				const cachedData = await dataService.getAllCachedData();
+				if (cachedData.length === 0) {
+					await stream.markdown('No cached data available. Please use /cache command to cache some data first.');
+					return;
+				}
+
+				// Create reference context from all cached data
+				const referenceContext = cachedData.map(item => 
+					`Document from ${item.url}:\n<reference>${item.content}</reference>`
+				).join('\n\n');
+
+				// Initialize messages with base prompt
+				const messages = [
+					vscode.LanguageModelChatMessage.User(FETCH_PROMPT),
+					vscode.LanguageModelChatMessage.Assistant('Here are the reference documents:\n' + referenceContext),
+					vscode.LanguageModelChatMessage.User(`Please answer this question using the reference documents above: ${request.prompt}`)
+				];
+
+				// Send request to model
+				const chatResponse = await request.model.sendRequest(messages, {}, token);
+
+				// Stream the response
+				for await (const fragment of chatResponse.text) {
+					stream.markdown(fragment);
+				}
+				return;
+			} catch (error) {
+				logger.appendLine(`Error during ask command: ${error instanceof Error ? error.message : 'Unknown error'}`);
+				if (error instanceof Error) {
+					await stream.markdown(`Error: ${error.message}`);
+				} else {
+					await stream.markdown('An unexpected error occurred');
+				}
+				return;
+			}
 		} else if (request.command === 'fetch') {
 			logger.appendLine('Using fetch prompt');
 			try {
@@ -139,7 +178,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const tutor = vscode.chat.createChatParticipant("thinhda.talan", handler);
 
 	// add icon to participant
-	tutor.iconPath = vscode.Uri.joinPath(context.extensionUri, 'tutor.jpeg');
+	tutor.iconPath = vscode.Uri.joinPath(context.extensionUri, 'talan.png');
 	logger.appendLine('Chat participant created and configured');
 }
 

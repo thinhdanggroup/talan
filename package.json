@@ -59,6 +59,10 @@
           {
             "name": "cache",
             "description": "Cache the URL to avoid fetching data from the server."
+          },
+          {
+            "name": "ask",
+            "description": "Ask questions using all cached documents as context."
           }
         ]
       }

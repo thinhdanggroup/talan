@@ -277,4 +277,27 @@ export class DataService {
     );
     logger.appendLine('Cache cleared successfully');
   }
+
+  async getAllCachedData(): Promise<{ url: string; content: string }[]> {
+    logger.appendLine('Getting all cached data');
+    const allKeys = this.context.globalState.keys();
+    const cacheKeys = allKeys.filter(key => key.startsWith(DataService.CACHE_KEY));
+    
+    const result: { url: string; content: string }[] = [];
+    
+    for (const key of cacheKeys) {
+      const url = key.replace(`${DataService.CACHE_KEY}-`, '');
+      const cachedData = this.getCachedData(url);
+      
+      if (cachedData && typeof cachedData === 'object' && 'content' in cachedData && typeof cachedData.content === 'string') {
+        result.push({
+          url,
+          content: cachedData.content
+        });
+      }
+    }
+    
+    logger.appendLine(`Found ${result.length} cached items`);
+    return result;
+  }
 }
