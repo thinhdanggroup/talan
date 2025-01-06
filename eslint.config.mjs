@@ -1,44 +1,43 @@
-/**
- * ESLint configuration for the project.
- * 
- * See https://eslint.style and https://typescript-eslint.io for additional linting options.
- */
-// @ts-check
-import js from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import stylistic from '@stylistic/eslint-plugin';
+import js from "@eslint/js";
+import stylistic from "@stylistic/eslint-plugin";
 
-export default tseslint.config(
-	{
-		ignores: [
-			'.vscode-test',
-			'out',
-		]
-	},
-	js.configs.recommended,
-	...tseslint.configs.recommended,
-	...tseslint.configs.stylistic,
-	{
-		plugins: {
-			'@stylistic': stylistic
-		},
-		rules: {
-			'curly': 'warn',
-			'@stylistic/semi': ['warn', 'always'],
-			'@typescript-eslint/no-empty-function': 'off',
-			'@typescript-eslint/naming-convention': [
-				'warn',
-				{
-					'selector': 'import',
-					'format': ['camelCase', 'PascalCase']
-				}
-			],
-			'@typescript-eslint/no-unused-vars': [
-				'error',
-				{
-					'argsIgnorePattern': '^_'
-				}
-			]
-		}
-	}
-);
+export default [
+  js.configs.recommended,
+  {
+    plugins: {
+      "@stylistic": stylistic,
+    },
+    rules: {
+      "@stylistic/semi": "error",
+      "no-undef": "off", // TypeScript handles this
+      "no-unused-vars": "off" // TypeScript handles this
+    },
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: "module"
+      },
+      globals: {
+        Buffer: "readonly",
+        console: "readonly",
+        // Add Jest globals
+        jest: "readonly",
+        expect: "readonly",
+        describe: "readonly",
+        it: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+        // Add Node.js globals
+        module: "readonly",
+        require: "readonly",
+        process: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+      },
+    },
+  },
+];

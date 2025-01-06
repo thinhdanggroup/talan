@@ -1,19 +1,99 @@
 import * as vscode from 'vscode';
-
-const BASE_PROMPT = 'You are a helpful code tutor. Your job is to teach the user with simple descriptions and sample code of the concept. Respond with a guided overview of the concept in a series of messages. Do not give the user the answer directly, but guide them to find the answer themselves. If the user asks a non-programming question, politely decline to respond.';
-
-const EXERCISES_PROMPT = 'You are a helpful tutor. Your job is to teach the user with fun, simple exercises that they can complete in the editor. Your exercises should start simple and get more complex as the user progresses. Move one concept at a time, and do not move on to the next concept until the user provides the correct answer. Give hints in your exercises to help the user learn. If the user is stuck, you can provide the answer and explain why it is the answer. If the user asks a non-programming question, politely decline to respond.';
+import { BASE_PROMPT, EXERCISES_PROMPT, FETCH_PROMPT } from './prompts';
+import { DataService } from './services/data.service';
+import { logger } from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
+	logger.appendLine('Talan extension is now active');
+	const dataService = new DataService(context);
+
+	// Register clear cache command
+	const clearCacheCommand = vscode.commands.registerCommand('talan.clearCache', async () => {
+		logger.appendLine('Executing clear cache command');
+		const url = await vscode.window.showInputBox({
+			prompt: 'Enter URL to clear cache for',
+			placeHolder: 'https://example.com'
+		});
+		if (url) {
+			logger.appendLine(`Clearing cache for URL: ${url}`);
+			await dataService.clearCache(url);
+			vscode.window.showInformationMessage(`Cache cleared for ${url}`);
+			logger.appendLine('Cache cleared successfully');
+		} else {
+			logger.appendLine('Clear cache cancelled - no URL provided');
+		}
+	});
+	context.subscriptions.push(clearCacheCommand);
 
 	// define a chat handler
 	const handler: vscode.ChatRequestHandler = async (request: vscode.ChatRequest, context: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken) => {
+		logger.appendLine(`Processing chat request - Command: ${request.command || 'default'}`);
 
 		// initialize the prompt
 		let prompt = BASE_PROMPT;
 
 		if (request.command === 'exercise') {
+			logger.appendLine('Using exercise prompt');
 			prompt = EXERCISES_PROMPT;
+		} else if (request.command === 'cache') {
+			logger.appendLine('Using cache command');
+			try {
+				// Extract URL from prompt using regex
+				const defaultUrl = 'https://thinhdanggroup.github.io/';
+				const urlRegex = /(https?:\/\/[^\s]+)/g;
+				const matches = request.prompt.match(urlRegex);
+				const url = matches ? matches[0] : defaultUrl;
+				
+				logger.appendLine(`Attempting to cache data from URL: ${url}`);
+				await dataService.fetchData(url); // This will automatically cache the data
+				await stream.markdown(`Successfully cached data from ${url}`);
+				return;
+			} catch (error) {
+				logger.appendLine(`Error during cache: ${error instanceof Error ? error.message : 'Unknown error'}`);
+				if (error instanceof Error) {
+					await stream.markdown(`Error: ${error.message}`);
+				} else {
+					await stream.markdown('An unexpected error occurred');
+				}
+				return;
+			}
+		} else if (request.command === 'fetch') {
+			logger.appendLine('Using fetch prompt');
+			try {
+				prompt = FETCH_PROMPT;
+				// Extract URL from prompt using regex
+				const defaultUrl = 'https://thinhdanggroup.github.io/';
+				const urlRegex = /(https?:\/\/[^\s]+)/g;
+				const matches = request.prompt.match(urlRegex);
+				const url = matches ? matches[0] : defaultUrl;
+				
+				logger.appendLine(`Attempting to fetch data from URL: ${url}`);
+
+				const data = await dataService.fetchData(url);
+				logger.appendLine('Data fetched successfully');
+				const messages = [
+					vscode.LanguageModelChatMessage.User(prompt),
+				];
+				messages.push(vscode.LanguageModelChatMessage.Assistant(`This is reference document with url ${url}: <reference>${data}</reference>`));
+				messages.push(vscode.LanguageModelChatMessage.User(`Please answer this question: ${request.prompt}`));
+
+				// stream.markdown(all_messages_markdown);
+				const chatResponse = await request.model.sendRequest(messages, {}, token);
+
+				// stream the response
+				for await (const fragment of chatResponse.text) {
+					stream.markdown(fragment);
+				}
+				return;
+			} catch (error) {
+				logger.appendLine(`Error during fetch: ${error instanceof Error ? error.message : 'Unknown error'}`);
+				if (error instanceof Error) {
+					await stream.markdown(`Error: ${error.message}`);
+				} else {
+					await stream.markdown('An unexpected error occurred');
+				}
+				return;
+			}
 		}
 
 		// initialize the messages array with the prompt
@@ -40,22 +120,30 @@ export function activate(context: vscode.ExtensionContext) {
 		messages.push(vscode.LanguageModelChatMessage.User(request.prompt));
 
 		// send the request
+		logger.appendLine('Sending chat request to model');
 		const chatResponse = await request.model.sendRequest(messages, {}, token);
 
 		// stream the response
+		logger.appendLine('Streaming chat response');
 		for await (const fragment of chatResponse.text) {
 			stream.markdown(fragment);
 		}
+		logger.appendLine('Chat response completed');
 
 		return;
 
 	};
 
 	// create participant
+	logger.appendLine('Creating chat participant');
 	const tutor = vscode.chat.createChatParticipant("thinhda.talan", handler);
 
 	// add icon to participant
 	tutor.iconPath = vscode.Uri.joinPath(context.extensionUri, 'tutor.jpeg');
+	logger.appendLine('Chat participant created and configured');
 }
 
-export function deactivate() { }
+export function deactivate() {
+	logger.appendLine('Talan extension is being deactivated');
+	logger.dispose();
+}
